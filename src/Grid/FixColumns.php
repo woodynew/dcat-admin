@@ -170,18 +170,20 @@ class FixColumns
 (function () {
     var $tableMain = $('.table-main'), minHeight = 600;
 
-    var theadHeight = $('.table-main thead tr').outerHeight();
+    var theadHeight = $('#grid-table > thead > tr').outerHeight();
     $('.table-fixed thead tr').outerHeight(theadHeight);
 
-    var tfootHeight = $('.table-main tfoot tr').outerHeight();
+    var tfootHeight = $('#grid-table > tfoot > tr').outerHeight();
     $('.table-fixed tfoot tr').outerHeight(tfootHeight);
 
-    $('.table-main tbody tr').each(function(i, obj) {
-        var height = $(obj).outerHeight();
+    setTimeout(function(){
+        $('#grid-table > tbody > tr').each(function(i, obj) {
+            var height = $(obj).outerHeight() ;
 
-        $('.table-fixed-left tbody tr').eq(i).outerHeight(height);
-        $('.table-fixed-right tbody tr').eq(i).outerHeight(height);
-    });
+            $('.table-fixed-left tbody tr').eq(i).outerHeight(height);
+            $('.table-fixed-right tbody tr').eq(i).outerHeight(height);
+        });
+    },100)
 
     if ($tableMain.width() >= $tableMain.prop('scrollWidth') || $(window).width() < 600) {
         $('.table-fixed').hide();
@@ -212,7 +214,7 @@ class FixColumns
 
     $('.table-wrap tbody tr').on('mouseover', function () {
         var index = $(this).index();
-        $('.table-main tbody tr').eq(index).addClass('active');
+        $('#grid-table > tbody > tr').eq(index).addClass('active');
         $('.table-fixed-left tbody tr').eq(index).addClass('active');
         $('.table-fixed-right tbody tr').eq(index).addClass('active');
     });
@@ -220,7 +222,7 @@ class FixColumns
     $('.table-wrap tbody tr').on('mouseout', function () {
         var index = $(this).index();
 
-        $('.table-main tbody tr').eq(index).removeClass('active');
+        $('#grid-table > tbody > tr').eq(index).removeClass('active');
         $('.table-fixed-left tbody tr').eq(index).removeClass('active');
         $('.table-fixed-right tbody tr').eq(index).removeClass('active');
     });

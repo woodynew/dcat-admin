@@ -1,5 +1,5 @@
 {
-    "name": "dcat/laravel-admin",
+    "name": "woodynew/dcat-laravel-admin",
     "description": "dcat admin",
     "type": "library",
     "keywords": ["dcat", "laravel", "admin", "grid", "form", "laravel admin"],

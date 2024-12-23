@@ -4,6 +4,8 @@ namespace Dcat\Admin\Grid;
 
 abstract class BatchAction extends GridAction
 {
+    public $selectorPrefix;
+
     /**
      * {@inheritdoc}
      */
@@ -12,14 +14,14 @@ abstract class BatchAction extends GridAction
         $warning = __('No data selected!');
 
         return <<<JS
-function (data, target, action) { 
+function (data, target, action) {
     var key = {$this->getSelectedKeysScript()}
-    
+
     if (key.length === 0) {
         Dcat.warning('{$warning}');
         return false;
     }
-    
+
     // 设置主键为复选框选中的行ID数组
     action.options.key = key;
 }

@@ -13,6 +13,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Laravel\Octane\Octane;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
@@ -45,9 +46,9 @@ class Manager
      */
     protected $files;
 
-    public function __construct(Container $app)
+    public function __construct(\Closure $app)
     {
-        $this->app = $app;
+        $this->app = $app();
 
         $this->extensions = new Collection();
 

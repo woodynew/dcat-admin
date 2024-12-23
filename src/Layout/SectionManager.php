@@ -2,6 +2,7 @@
 
 namespace Dcat\Admin\Layout;
 
+use Dcat\Admin\Admin;
 use Dcat\Admin\Exception\RuntimeException;
 use Dcat\Admin\Support\Helper;
 use Illuminate\Contracts\Support\Htmlable;

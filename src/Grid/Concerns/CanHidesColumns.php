@@ -22,6 +22,8 @@ trait CanHidesColumns
      */
     private $columnSelectorStorage;
 
+    private $visibleColumnsFromQuery;
+
     /**
      * Remove column selector on grid.
      *

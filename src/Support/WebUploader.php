@@ -25,9 +25,19 @@ class WebUploader
 
     protected $completeFile;
 
-    public function __construct(Request $request = null)
+    protected $_id;
+
+    protected $chunk;
+
+    protected $chunks;
+
+    protected $upload_column;
+
+    protected $file;
+
+    public function __construct(\Closure $request = null)
     {
-        $request = $this->prepareRequest($request ?: request());
+        $request = $this->prepareRequest($request() ?: request());
 
         $this->_id = $request->get('_id');
         $this->chunk = $request->get('chunk');

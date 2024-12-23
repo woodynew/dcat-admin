@@ -33,7 +33,6 @@ trait HasBuilderEvents
         $key = static::formatEventKey($key);
 
         $listeners = $context->get($key) ?: [];
-
         foreach ($listeners as $k => $listener) {
             [$callback, $once] = $listener;
 
@@ -62,6 +61,6 @@ trait HasBuilderEvents
 
     protected static function formatEventKey($key)
     {
-        return static::class.':'.$key;
+        return static::class . ':' . $key;
     }
 }

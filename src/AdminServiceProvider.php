@@ -17,9 +17,11 @@ use Dcat\Admin\Support\Helper;
 use Dcat\Admin\Support\Setting;
 use Dcat\Admin\Support\Translator;
 use Dcat\Admin\Support\WebUploader;
+use Illuminate\Container\Container;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Octane;
 
 class AdminServiceProvider extends ServiceProvider
 {
@@ -64,13 +66,13 @@ class AdminServiceProvider extends ServiceProvider
      * @var array
      */
     protected $routeMiddleware = [
-        'admin.auth'       => Http\Middleware\Authenticate::class,
-        'admin.pjax'       => Http\Middleware\Pjax::class,
+        'admin.auth' => Http\Middleware\Authenticate::class,
+        'admin.pjax' => Http\Middleware\Pjax::class,
         'admin.permission' => Http\Middleware\Permission::class,
-        'admin.bootstrap'  => Http\Middleware\Bootstrap::class,
-        'admin.session'    => Http\Middleware\Session::class,
-        'admin.upload'     => Http\Middleware\WebUploader::class,
-        'admin.app'        => Http\Middleware\Application::class,
+        'admin.bootstrap' => Http\Middleware\Bootstrap::class,
+        'admin.session' => Http\Middleware\Session::class,
+        'admin.upload' => Http\Middleware\WebUploader::class,
+        'admin.app' => Http\Middleware\Application::class,
     ];
 
     /**
@@ -116,14 +118,14 @@ class AdminServiceProvider extends ServiceProvider
 
     protected function aliasAdmin()
     {
-        if (! class_exists(\Admin::class)) {
+        if (!class_exists(\Admin::class)) {
             class_alias(Admin::class, \Admin::class);
         }
     }
 
     protected function registerViews()
     {
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'admin');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'admin');
     }
 
     /**
@@ -168,10 +170,10 @@ class AdminServiceProvider extends ServiceProvider
     protected function registerPublishing()
     {
         if ($this->app->runningInConsole()) {
-            $this->publishes([__DIR__.'/../config' => config_path()], 'dcat-admin-config');
-            $this->publishes([__DIR__.'/../resources/lang' => $this->app->langPath()], 'dcat-admin-lang');
-            $this->publishes([__DIR__.'/../database/migrations' => database_path('migrations')], 'dcat-admin-migrations');
-            $this->publishes([__DIR__.'/../resources/dist' => public_path(Admin::asset()->getRealPath('@admin'))], 'dcat-admin-assets');
+            $this->publishes([__DIR__ . '/../config' => config_path()], 'dcat-admin-config');
+            $this->publishes([__DIR__ . '/../resources/lang' => $this->app->langPath()], 'dcat-admin-lang');
+            $this->publishes([__DIR__ . '/../database/migrations' => database_path('migrations')], 'dcat-admin-migrations');
+            $this->publishes([__DIR__ . '/../resources/dist' => public_path(Admin::asset()->getRealPath('@admin'))], 'dcat-admin-assets');
         }
     }
 
@@ -184,9 +186,9 @@ class AdminServiceProvider extends ServiceProvider
     {
         config(Arr::dot(config('admin.auth', []), 'auth.'));
 
-        foreach ((array) config('admin.multi_app') as $app => $enable) {
+        foreach ((array)config('admin.multi_app') as $app => $enable) {
             if ($enable) {
-                config(Arr::dot(config($app.'.auth', []), 'auth.'));
+                config(Arr::dot(config($app . '.auth', []), 'auth.'));
             }
         }
     }
@@ -197,13 +199,14 @@ class AdminServiceProvider extends ServiceProvider
     protected function registerDefaultSections()
     {
         Content::composing(function () {
-            if (! admin_has_default_section(Admin::SECTION['NAVBAR_USER_PANEL'])) {
+
+            if (!admin_has_default_section(Admin::SECTION['NAVBAR_USER_PANEL'])) {
                 admin_inject_default_section(Admin::SECTION['NAVBAR_USER_PANEL'], function () {
                     return view('admin::partials.navbar-user-panel', ['user' => Admin::user()]);
                 });
             }
 
-            if (! admin_has_default_section(Admin::SECTION['LEFT_SIDEBAR_USER_PANEL'])) {
+            if (!admin_has_default_section(Admin::SECTION['LEFT_SIDEBAR_USER_PANEL'])) {
                 admin_inject_default_section(Admin::SECTION['LEFT_SIDEBAR_USER_PANEL'], function () {
                     return view('admin::partials.sidebar-user-panel', ['user' => Admin::user()]);
                 });
@@ -211,16 +214,23 @@ class AdminServiceProvider extends ServiceProvider
 
             // Register menu
             Admin::menu()->register();
-        }, true);
+        }, false);
     }
 
     public function registerServices()
     {
-        $this->app->singleton('admin.app', Application::class);
+        $this->app->singleton('admin.app', function () {
+            return new Application(fn() => Container::getInstance());
+        });
         $this->app->singleton('admin.asset', Asset::class);
         $this->app->singleton('admin.color', Color::class);
         $this->app->singleton('admin.sections', SectionManager::class);
-        $this->app->singleton('admin.extend', Manager::class);
+//        $this->app->singleton('admin.extend', Manager::class);
+        $this->app->singleton('admin.extend', function () {
+            Octane::writeError("====registerServices::".(fn() => Container::getInstance())::class);
+            return new Manager(fn() => Container::getInstance());
+        });
+
         $this->app->singleton('admin.extend.update', function () {
             return new UpdateManager(app('admin.extend'));
         });
@@ -233,7 +243,9 @@ class AdminServiceProvider extends ServiceProvider
         $this->app->singleton('admin.setting', function () {
             return Setting::fromDatabase();
         });
-        $this->app->singleton('admin.web-uploader', WebUploader::class);
+        $this->app->singleton('admin.web-uploader', function (\Illuminate\Foundation\Application $app) {
+            return new WebUploader(fn () => $app['request']);
+        });
         $this->app->singleton(ExceptionHandler::class, config('admin.exception_handler') ?: Handler::class);
         $this->app->singleton('admin.translator', Translator::class);
     }
@@ -271,7 +283,7 @@ PHP;
             $router->aliasMiddleware($key, $middleware);
         }
 
-        $disablePermission = ! config('admin.permission.enable');
+        $disablePermission = !config('admin.permission.enable');
 
         // register middleware group.
         foreach ($this->middlewareGroups as $key => $middleware) {

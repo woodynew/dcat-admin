@@ -36,9 +36,9 @@ class Application
      */
     protected $name;
 
-    public function __construct(Container $app)
+    public function __construct(\Closure $app)
     {
-        $this->container = $app;
+        $this->container = $app();
     }
 
     public function getApps()

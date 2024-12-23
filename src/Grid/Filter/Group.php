@@ -256,7 +256,7 @@ class Group extends AbstractFilter
 
         $this->value = $value;
 
-        $group = Arr::get($inputs, "{$this->id}_group");
+        $group = Arr::get($inputs, "{$this->sanitizeId()}_group");
 
         if ($this->group->isEmpty()) {
             call_user_func($this->builder, $this);
@@ -265,6 +265,18 @@ class Group extends AbstractFilter
         if ($query = $this->group->get($group)) {
             return $this->buildCondition(...$query['condition']);
         }
+    }
+
+    /**
+     * Sanitize the filter id.
+     * 
+     * @return string
+     */
+    protected function sanitizeId()
+    {
+        if ($prefix = $this->parent()->grid()->getNamePrefix())
+            return str_replace($prefix, '', $this->id);
+        return $this->id;
     }
 
     /**

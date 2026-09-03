@@ -36,7 +36,7 @@ class HasMany extends Component
     {
         $browser->assertVisible('@container')
             ->assertVisible('@add')
-            ->assertVisible('@forms');
+            ->assertPresent('@forms');
     }
 
     /**

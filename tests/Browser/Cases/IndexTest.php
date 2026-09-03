@@ -38,7 +38,9 @@ class IndexTest extends TestCase
                 ->within('.main-menu-content', function (Browser $browser) {
                     $browser
                         ->pause(500)
-                        ->clickLink($this->translateMenuTitle('Admin'));
+                        ->clickLink($this->translateMenuTitle('Admin'))
+                        ->pause(200)
+                        ->assertSeeText($this->translateMenuTitle('Users'));
 //                        ->whenTextAvailable($this->translateMenuTitle('Users'), 2)
 //                        ->clickLink($this->translateMenuTitle('Users'))
 //                        ->assertPathIs(admin_base_path('auth/users'))

@@ -208,7 +208,7 @@ class VersionManager
             return $versions;
         }
 
-        return array_slice($versions, $position++);
+        return array_slice($versions, $position + 1);
     }
 
     public function getFileVersions($name)

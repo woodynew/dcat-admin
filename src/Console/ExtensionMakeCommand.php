@@ -104,7 +104,9 @@ class ExtensionMakeCommand extends Command
         $this->basePath = rtrim($this->extensionDir, '/').'/'.ltrim($this->package, '/');
 
         if (is_dir($this->basePath)) {
-            return $this->error(sprintf('The extension [%s] already exists!', $this->package));
+            $this->error(sprintf('The extension [%s] already exists!', $this->package));
+
+            return 1;
         }
 
         InputExtensionName :
@@ -118,6 +120,8 @@ class ExtensionMakeCommand extends Command
 
         $this->info("The extension scaffolding generated successfully. \r\n");
         $this->showTree();
+
+        return 0;
     }
 
     /**

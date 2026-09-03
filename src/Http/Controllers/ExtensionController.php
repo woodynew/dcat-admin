@@ -5,7 +5,6 @@ namespace Dcat\Admin\Http\Controllers;
 use Dcat\Admin\Form;
 use Dcat\Admin\Grid;
 use Dcat\Admin\Http\Actions\Extensions\InstallFromLocal;
-use Dcat\Admin\Http\Actions\Extensions\Marketplace;
 use Dcat\Admin\Http\Displayers\Extensions;
 use Dcat\Admin\Http\Repositories\Extension;
 use Dcat\Admin\Layout\Content;
@@ -44,7 +43,9 @@ class ExtensionController extends Controller
                 }
 
                 foreach ($v as &$item) {
-                    $item = "<span class='text-80'>{$item['name']}</span> <<code>{$item['email']}</code>>";
+                    $name = e((string) ($item['name'] ?? ''));
+                    $email = e((string) ($item['email'] ?? ''));
+                    $item = "<span class='text-80'>{$name}</span> &lt;<code>{$email}</code>&gt;";
                 }
 
                 return implode('<div style="margin-top: 5px"></div>', $v);
@@ -63,7 +64,6 @@ class ExtensionController extends Controller
             $grid->disableActions();
 
             $grid->tools([
-                new Marketplace(),
                 new InstallFromLocal(),
             ]);
 

@@ -4,7 +4,6 @@ namespace Dcat\Admin\Console;
 
 use Dcat\Admin\Admin;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
 
 class ExtensionInstallCommand extends Command
 {
@@ -19,27 +18,29 @@ class ExtensionInstallCommand extends Command
         $name = $this->argument('name');
         $path = $this->option('path');
 
+        if (! $path) {
+            $this->error('Remote extension installation is unavailable. Use --path with a trusted local ZIP package.');
+
+            return 1;
+        }
+
         $manager = Admin::extension()->setOutput($this->output);
 
-        if ($path) {
-            if (! is_file($path)) {
-                $path = rtrim($path, '/').sprintf('/%s.zip', str_replace('/', '.', $name));
-            }
-        } else {
-            $extensionDetails = $manager->requestDetails($name);
+        if (! is_file($path)) {
+            $path = rtrim($path, '/').sprintf('/%s.zip', str_replace('/', '.', $name));
+        }
 
-            $path = $hash = Arr::get($extensionDetails, 'hash');
+        if (! is_file($path)) {
+            $this->error(sprintf('Extension package not found: %s', $path));
 
-            $this->output->writeln(sprintf('<info>Downloading extension: %s[%s]</info>', $name, $hash));
-
-            $manager->download($name, $hash, true);
+            return 1;
         }
 
         $this->output->writeln(sprintf('<info>Unpacking extension: %s</info>', $name));
 
         $manager->extract($path);
 
-        $this->output->writeln(sprintf('<info>Migrating extension...</info>', $name));
+        $this->output->writeln('<info>Migrating extension...</info>');
 
         Admin::extension()->load();
 
@@ -47,5 +48,7 @@ class ExtensionInstallCommand extends Command
             ->updateManager()
             ->setOutPut($this->output)
             ->update($name);
+
+        return 0;
     }
 }

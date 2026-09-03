@@ -1,11 +1,11 @@
 <div class="d-flex">
     @if($row->logo)
-        <img data-action='preview-img' src='{!! $row->logo !!}' style='max-width:40px;max-height:40px;cursor:pointer' class='img img-thumbnail' />&nbsp;&nbsp;
+        <img data-action='preview-img' src='{{ $row->logo }}' style='max-width:40px;max-height:40px;cursor:pointer' class='img img-thumbnail' />&nbsp;&nbsp;
     @endif
 
     <span class="ext-name">
         @if($row->homepage)
-            <a href='{!! $row->homepage !!}' target='_blank' class="feather {{ $linkIcon }}"></a>
+            <a href='{{ $row->homepage }}' target='_blank' rel='noopener noreferrer' class="feather {{ $linkIcon }}"></a>
         @endif
 
         @if($row->alias)

@@ -413,7 +413,11 @@ class Manager
 
         $composerProperty = Composer::parse($directory.'/composer.json');
 
-        if (! $composerProperty->name || ! $composerProperty->get('extra.dcat-admin')) {
+        if (
+            ! $composerProperty->name
+            || ! Helper::validateExtensionName($composerProperty->name)
+            || ! $composerProperty->get('extra.dcat-admin')
+        ) {
             return false;
         }
 

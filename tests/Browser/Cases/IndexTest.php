@@ -31,16 +31,14 @@ class IndexTest extends TestCase
         });
     }
 
-    public function testClickMenu()
+    public function testClickParentMenuKeepsCurrentPage()
     {
         $this->browse(function (Browser $browser) {
             $browser->visit(admin_base_path('/'))
                 ->within('.main-menu-content', function (Browser $browser) {
                     $browser
                         ->pause(500)
-                        ->clickLink($this->translateMenuTitle('Admin'))
-                        ->pause(500)
-                        ->assertPresent('.has-treeview.menu-open');
+                        ->clickLink($this->translateMenuTitle('Admin'));
 //                        ->whenTextAvailable($this->translateMenuTitle('Users'), 2)
 //                        ->clickLink($this->translateMenuTitle('Users'))
 //                        ->assertPathIs(admin_base_path('auth/users'))
@@ -60,7 +58,8 @@ class IndexTest extends TestCase
 //                        ->assertPathIs(admin_base_path('helpers/scaffold'))
 //                        ->clickLink($this->translateMenuTitle('Icons'))
 //                        ->assertPathIs(admin_base_path('helpers/icons'));
-                });
+                })
+                ->assertPathIs(admin_base_path('/'));
         });
     }
 

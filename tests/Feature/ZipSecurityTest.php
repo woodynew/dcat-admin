@@ -44,7 +44,9 @@ class ZipSecurityTest extends TestCase
             $this->assertFileDoesNotExist($outside);
         } finally {
             @unlink($archive);
-            @unlink($outside);
+            if (is_file($outside)) {
+                unlink($outside);
+            }
             $files->deleteDirectory($root);
         }
     }

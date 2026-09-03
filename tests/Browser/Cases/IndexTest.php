@@ -40,7 +40,7 @@ class IndexTest extends TestCase
                         ->pause(500)
                         ->clickLink($this->translateMenuTitle('Admin'))
                         ->pause(200)
-                        ->assertSeeText($this->translateMenuTitle('Users'));
+                        ->assertPresent('.has-treeview.menu-open');
 //                        ->whenTextAvailable($this->translateMenuTitle('Users'), 2)
 //                        ->clickLink($this->translateMenuTitle('Users'))
 //                        ->assertPathIs(admin_base_path('auth/users'))

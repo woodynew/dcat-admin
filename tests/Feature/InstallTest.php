@@ -8,7 +8,6 @@ use Tests\TestCase;
 /**
  * 安装功能测试.
  *
- * @group install
  */
 class InstallTest extends TestCase
 {

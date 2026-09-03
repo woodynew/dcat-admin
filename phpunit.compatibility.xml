@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="vendor/autoload.php"
+         colors="true"
+         processIsolation="false"
+         stopOnFailure="false">
+    <testsuites>
+        <testsuite name="Compatibility">
+            <file>./tests/Feature/ExtensionCommandTest.php</file>
+            <file>./tests/Feature/ExtensionSecurityTest.php</file>
+            <file>./tests/Feature/LazyRenderableCompatibilityTest.php</file>
+            <file>./tests/Feature/PublishCommandTest.php</file>
+            <file>./tests/Feature/VersionManagerTest.php</file>
+            <file>./tests/Feature/ZipSecurityTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>

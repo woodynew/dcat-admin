@@ -43,15 +43,18 @@ abstract class DuskTestCase extends BaseTestCase
         parent::tearDown();
     }
 
-    /**
-     * Prepare for Dusk test execution.
-     *
-     * @beforeClass
-     *
-     * @return void
-     */
-    public static function prepare()
+    public static function setUpBeforeClass(): void
     {
+        parent::setUpBeforeClass();
+
+        if (getenv('DUSK_DRIVER_EXTERNAL')) {
+            return;
+        }
+
+        if ($chromeDriver = getenv('CHROMEDRIVER_PATH')) {
+            static::useChromedriver($chromeDriver);
+        }
+
         static::startChromeDriver();
     }
 
@@ -81,13 +84,19 @@ abstract class DuskTestCase extends BaseTestCase
     {
         $options = (new ChromeOptions)->addArguments([
             '--disable-gpu',
+            '--disable-dev-shm-usage',
             '--headless',
+            '--no-sandbox',
             '--window-size=1920,1080',
         ]);
 
+        if ($chromeBinary = getenv('CHROME_BINARY')) {
+            $options->setBinary($chromeBinary);
+        }
+
         return RemoteWebDriver::create(
             'http://localhost:9515', DesiredCapabilities::chrome()->setCapability(
-                ChromeOptions::CAPABILITY_W3C, $options
+                ChromeOptions::CAPABILITY, $options
             )
         );
     }

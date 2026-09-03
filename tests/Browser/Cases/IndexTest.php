@@ -31,7 +31,7 @@ class IndexTest extends TestCase
         });
     }
 
-    public function testClickMenu()
+    public function testClickParentMenuKeepsCurrentPage()
     {
         $this->browse(function (Browser $browser) {
             $browser->visit(admin_base_path('/'))
@@ -58,7 +58,8 @@ class IndexTest extends TestCase
 //                        ->assertPathIs(admin_base_path('helpers/scaffold'))
 //                        ->clickLink($this->translateMenuTitle('Icons'))
 //                        ->assertPathIs(admin_base_path('helpers/icons'));
-                });
+                })
+                ->assertPathIs(admin_base_path('/'));
         });
     }
 

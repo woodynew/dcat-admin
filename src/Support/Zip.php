@@ -66,16 +66,32 @@ class Zip extends ZipArchive
     public static function extract($source, $destination, $options = [])
     {
         extract(array_merge([
-            'mask' => 0777,
+            'mask' => 0755,
         ], $options));
 
         if (file_exists($destination) || mkdir($destination, $mask, true)) {
             $zip = new ZipArchive;
             if ($zip->open($source) === true) {
-                $zip->extractTo($destination);
+                for ($index = 0; $index < $zip->numFiles; $index++) {
+                    $entry = str_replace('\\', '/', (string) $zip->getNameIndex($index));
+                    $segments = explode('/', $entry);
+
+                    if (
+                        strpos($entry, "\0") !== false
+                        || strpos($entry, '/') === 0
+                        || preg_match('/^[A-Za-z]:\//', $entry)
+                        || in_array('..', $segments, true)
+                    ) {
+                        $zip->close();
+
+                        return false;
+                    }
+                }
+
+                $extracted = $zip->extractTo($destination);
                 $zip->close();
 
-                return true;
+                return $extracted;
             }
         }
 

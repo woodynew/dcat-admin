@@ -25,8 +25,6 @@ class Uninstall extends RowAction
             ->updateManager()
             ->rollback($this->getKey());
 
-        Admin::extension()->get($this->getKey())->uninstall();
-
         return $this
             ->response()
             ->success(implode('<br>', $manager->notes))

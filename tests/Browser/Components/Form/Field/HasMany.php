@@ -36,7 +36,7 @@ class HasMany extends Component
     {
         $browser->assertVisible('@container')
             ->assertVisible('@add')
-            ->assertVisible('@forms');
+            ->assertPresent('@forms');
     }
 
     /**
@@ -103,7 +103,7 @@ JS
      * @param  \Closure  $callback
      * @return Browser
      */
-    public function withLastFormGroup(Browser $browser, \Closure $callback = null)
+    public function withLastFormGroup(Browser $browser, ?\Closure $callback = null)
     {
         return $this->withFormGroup($browser, $this->getLastFormGroupIndex($browser), $callback);
     }

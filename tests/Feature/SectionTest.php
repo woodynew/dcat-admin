@@ -7,7 +7,6 @@ use Tests\TestCase;
 /**
  * Section功能测试.
  *
- * @group section
  */
 class SectionTest extends TestCase
 {

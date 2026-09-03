@@ -1,0 +1,204 @@
+name: CI
+
+on:
+  push:
+    branches: [2.0]
+  pull_request:
+    branches: [2.0]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: composer validate --strict --no-check-publish
+      - name: PHP syntax
+        run: find config database src tests -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  compatibility:
+    name: Laravel ${{ matrix.laravel }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - laravel: '8.*'
+            label: '8'
+            php: '7.4'
+            legacy: true
+          - laravel: '8.*'
+            label: '8'
+            php: '8.0'
+            legacy: true
+          - laravel: '9.*'
+            label: '9'
+            php: '8.0'
+            legacy: true
+          - laravel: '10.*'
+            label: '10'
+            php: '8.1'
+            legacy: true
+          - laravel: '11.*'
+            label: '11'
+            php: '8.2'
+            legacy: true
+          - laravel: '12.*'
+            label: '12'
+            php: '8.3'
+            legacy: false
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: laravel
+          MYSQL_ROOT_PASSWORD: 123456
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent -h 127.0.0.1 -p123456"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: bcmath, curl, fileinfo, gd, mbstring, pdo_mysql, zip
+          tools: composer:v2
+      - name: Allow legacy Laravel dependency resolution
+        if: matrix.legacy
+        run: composer config --global audit.block-insecure false
+      - name: Create Laravel application
+        run: composer create-project --prefer-dist laravel/laravel laravel-tests '${{ matrix.laravel }}' --no-interaction --no-progress
+      - name: Install current fork
+        run: bash tests/bin/install-dep.sh
+      - name: Verify publish, install and rollback
+        run: bash tests/bin/install-admin.sh
+      - name: Run compatibility feature tests
+        run: cd laravel-tests && vendor/bin/phpunit -c phpunit.compatibility.xml
+      - name: Smoke framework commands
+        run: |
+          cd laravel-tests
+          php artisan package:discover --ansi
+          php artisan route:list > /dev/null
+          php artisan config:cache
+          php artisan config:clear
+
+  dusk:
+    name: Dusk / Laravel ${{ matrix.laravel }} / PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - laravel: '8.*'
+            label: '8'
+            php: '8.0'
+            legacy: true
+          - laravel: '12.*'
+            label: '12'
+            php: '8.3'
+            legacy: false
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: laravel
+          MYSQL_ROOT_PASSWORD: 123456
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent -h 127.0.0.1 -p123456"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          extensions: bcmath, curl, fileinfo, gd, mbstring, pdo_mysql, zip
+          tools: composer:v2
+      - name: Allow legacy Laravel dependency resolution
+        if: matrix.legacy
+        run: composer config --global audit.block-insecure false
+      - name: Create Laravel application
+        run: composer create-project --prefer-dist laravel/laravel laravel-tests '${{ matrix.laravel }}' --no-interaction --no-progress
+      - name: Install current fork
+        run: bash tests/bin/install-dep.sh
+      - name: Install Dusk
+        run: cd laravel-tests && composer require laravel/dusk --dev --with-all-dependencies --no-interaction --no-progress
+      - name: Verify publish, install and rollback
+        run: bash tests/bin/install-admin.sh
+      - name: Install Chrome and matching ChromeDriver
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
+      - name: Start ChromeDriver
+        env:
+          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p laravel-tests/storage/logs
+          "$CHROMEDRIVER_PATH" --port=9515 > laravel-tests/storage/logs/chromedriver.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:9515/status > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat laravel-tests/storage/logs/chromedriver.log
+          exit 1
+      - name: Start test application
+        run: bash tests/bin/start.sh
+      - name: Run browser tests
+        run: cd laravel-tests && php artisan dusk
+        env:
+          CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+          DUSK_DRIVER_EXTERNAL: 'true'
+      - name: Upload Dusk diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dusk-laravel-${{ matrix.label }}-php-${{ matrix.php }}
+          if-no-files-found: ignore
+          path: |
+            laravel-tests/storage/logs
+            laravel-tests/tests/Browser/console
+            laravel-tests/tests/Browser/screenshots
+
+  static-analysis:
+    name: PHPStan advisory
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2
+      - run: composer update --prefer-dist --no-interaction --no-progress
+      - run: composer phpstan

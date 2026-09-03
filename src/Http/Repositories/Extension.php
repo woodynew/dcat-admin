@@ -42,7 +42,7 @@ class Extension extends Repository
             'type'         => $extension->getType(),
             'description'  => $property->description,
             'authors'      => $property->authors,
-            'homepage'     => $property->homepage,
+            'homepage'     => $this->sanitizeHomepage($property->homepage),
             'enabled'      => $extension->enabled(),
             'new_version'  => $latest === $current || ! $current ? '' : $latest,
             'extension'    => $extension,
@@ -86,5 +86,16 @@ class Extension extends Repository
     public function deleting(Form $form): array
     {
         return [];
+    }
+
+    protected function sanitizeHomepage($homepage)
+    {
+        if (! is_string($homepage) || ! filter_var($homepage, FILTER_VALIDATE_URL)) {
+            return null;
+        }
+
+        return in_array(parse_url($homepage, PHP_URL_SCHEME), ['http', 'https'], true)
+            ? $homepage
+            : null;
     }
 }

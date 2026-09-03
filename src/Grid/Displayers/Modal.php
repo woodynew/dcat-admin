@@ -31,7 +31,13 @@ class Modal extends AbstractDisplayer
 
     protected function setUpLazyRenderable(LazyRenderable $renderable)
     {
-        return clone $renderable->payload(['key' => $this->getKey()]);
+        $renderable = clone $renderable;
+
+        if (method_exists($renderable, 'payload')) {
+            $renderable->payload(['key' => $this->getKey()]);
+        }
+
+        return $renderable;
     }
 
     public function display($callback = null)
@@ -54,7 +60,8 @@ class Modal extends AbstractDisplayer
         }
 
         if ($callback && is_string($callback) && is_subclass_of($callback, LazyRenderable::class)) {
-            $html = $this->setUpLazyRenderable($callback::make());
+            $renderable = method_exists($callback, 'make') ? $callback::make() : app($callback);
+            $html = $this->setUpLazyRenderable($renderable);
         } elseif ($callback && $callback instanceof LazyRenderable) {
             $html = $this->setUpLazyRenderable($callback);
         }

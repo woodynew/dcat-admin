@@ -39,7 +39,7 @@ class IndexTest extends TestCase
                     $browser
                         ->pause(500)
                         ->clickLink($this->translateMenuTitle('Admin'))
-                        ->pause(200)
+                        ->pause(500)
                         ->assertPresent('.has-treeview.menu-open');
 //                        ->whenTextAvailable($this->translateMenuTitle('Users'), 2)
 //                        ->clickLink($this->translateMenuTitle('Users'))

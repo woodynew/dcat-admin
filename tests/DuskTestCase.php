@@ -47,6 +47,10 @@ abstract class DuskTestCase extends BaseTestCase
     {
         parent::setUpBeforeClass();
 
+        if ($chromeDriver = getenv('CHROMEDRIVER_PATH')) {
+            static::useChromedriver($chromeDriver);
+        }
+
         static::startChromeDriver();
     }
 
@@ -81,6 +85,10 @@ abstract class DuskTestCase extends BaseTestCase
             '--no-sandbox',
             '--window-size=1920,1080',
         ]);
+
+        if ($chromeBinary = getenv('CHROME_BINARY')) {
+            $options->setBinary($chromeBinary);
+        }
 
         return RemoteWebDriver::create(
             'http://localhost:9515', DesiredCapabilities::chrome()->setCapability(

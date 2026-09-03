@@ -149,12 +149,20 @@ jobs:
         run: cd laravel-tests && composer require laravel/dusk --dev --with-all-dependencies --no-interaction --no-progress
       - name: Verify publish, install and rollback
         run: bash tests/bin/install-admin.sh
-      - name: Install matching ChromeDriver
-        run: cd laravel-tests && php artisan dusk:chrome-driver --detect
+      - name: Install Chrome and matching ChromeDriver
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
+        with:
+          chrome-version: stable
+          install-chromedriver: true
+          install-dependencies: true
       - name: Start test application
         run: bash tests/bin/start.sh
       - name: Run browser tests
         run: cd laravel-tests && php artisan dusk
+        env:
+          CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
+          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
       - name: Upload Dusk diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

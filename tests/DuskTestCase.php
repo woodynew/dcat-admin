@@ -47,6 +47,10 @@ abstract class DuskTestCase extends BaseTestCase
     {
         parent::setUpBeforeClass();
 
+        if (getenv('DUSK_DRIVER_EXTERNAL')) {
+            return;
+        }
+
         if ($chromeDriver = getenv('CHROMEDRIVER_PATH')) {
             static::useChromedriver($chromeDriver);
         }

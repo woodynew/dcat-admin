@@ -156,6 +156,20 @@ jobs:
           chrome-version: stable
           install-chromedriver: true
           install-dependencies: true
+      - name: Start ChromeDriver
+        env:
+          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+        run: |
+          mkdir -p laravel-tests/storage/logs
+          "$CHROMEDRIVER_PATH" --port=9515 > laravel-tests/storage/logs/chromedriver.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:9515/status > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat laravel-tests/storage/logs/chromedriver.log
+          exit 1
       - name: Start test application
         run: bash tests/bin/start.sh
       - name: Run browser tests
@@ -163,6 +177,7 @@ jobs:
         env:
           CHROME_BINARY: ${{ steps.setup-chrome.outputs.chrome-path }}
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+          DUSK_DRIVER_EXTERNAL: 'true'
       - name: Upload Dusk diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
